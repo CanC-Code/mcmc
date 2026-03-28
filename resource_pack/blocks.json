@@ -1,0 +1,7 @@
+{
+  "format_version": "1.1.0",
+  "chimera:high_poly_oak": {
+    "textures": "chimera_oak_bark",
+    "sound": "wood"
+  }
+}
