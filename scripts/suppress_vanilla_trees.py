@@ -6,7 +6,7 @@ print("Starting Vanilla Tree Suppression...")
 P_BP_RULES = "behavior_pack/feature_rules"
 os.makedirs(P_BP_RULES, exist_ok=True)
 
-# Master list of all vanilla tree rules and their features
+# Exhaustive list of all Bedrock vanilla tree rules
 VANILLA_RULES = {
     "lush_caves_azalea_tree_feature_rule": "minecraft:azalea_tree_feature",
     "cherry_tree_feature_rule": "minecraft:cherry_tree_feature",
@@ -27,7 +27,9 @@ VANILLA_RULES = {
     "overworld_surface_jungle_feature_rule": "minecraft:jungle_tree_feature",
     "overworld_surface_acacia_feature_rule": "minecraft:acacia_feature",
     "overworld_surface_dark_oak_feature_rule": "minecraft:dark_oak_feature",
-    "tall_birch_feature_rule": "minecraft:tall_birch_feature"
+    "tall_birch_feature_rule": "minecraft:tall_birch_feature",
+    "mega_jungle_tree_feature_rule": "minecraft:mega_jungle_tree_feature",
+    "pale_oak_feature_rule": "minecraft:pale_oak_feature" # Future proofing
 }
 
 for rule_id, feature_id in VANILLA_RULES.items():
@@ -40,13 +42,7 @@ for rule_id, feature_id in VANILLA_RULES.items():
             },
             "conditions": {
                 "placement_pass": "surface_pass",
-                "minecraft:biome_filter": [
-                    {
-                        "test": "has_biome_tag",
-                        "operator": "==",
-                        "value": "overworld"
-                    }
-                ]
+                "minecraft:biome_filter": [{"test": "has_biome_tag", "operator": "==", "value": "overworld"}]
             },
             "distribution": {
                 "iterations": 0,
@@ -59,4 +55,4 @@ for rule_id, feature_id in VANILLA_RULES.items():
     with open(f"{P_BP_RULES}/{rule_id}.json", "w") as f:
         json.dump(rule_data, f, indent=4)
 
-print(f"[OK] {len(VANILLA_RULES)} vanilla tree spawns successfully suppressed.")
+print(f"[OK] {len(VANILLA_RULES)} vanilla tree spawns cleanly suppressed.")
