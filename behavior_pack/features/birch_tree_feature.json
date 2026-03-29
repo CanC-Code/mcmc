@@ -2,7 +2,7 @@
   "format_version": "1.13.0",
   "minecraft:scatter_feature": {
     "description": {
-      "identifier": "minecraft:oak_tree_feature"
+      "identifier": "minecraft:birch_tree_feature"
     },
     "places_feature": "minecraft:air",
     "iterations": 0,
