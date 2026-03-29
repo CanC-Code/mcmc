@@ -9,7 +9,6 @@ def setup_render_env():
     cam.data.type = 'ORTHO'
     cam.data.ortho_scale = 2.0
     bpy.context.scene.camera = cam
-    
     bpy.context.scene.render.engine = 'CYCLES'
     bpy.context.scene.render.resolution_x = 256
     bpy.context.scene.render.resolution_y = 256
@@ -72,22 +71,30 @@ def render_texture(filename, material_setup_func):
     bpy.ops.object.delete()
 
 def nuke_vanilla_trees():
-    # This automatically disables every known vanilla tree spawn rule
     rules_dir = 'behavior_pack/feature_rules'
     os.makedirs(rules_dir, exist_ok=True)
     
-    vanilla_rules = [
-        'forest_oak_feature_rule', 'forest_birch_feature_rule', 'overworld_surface_oak_feature_rule',
-        'plains_tree_feature_rule', 'taiga_pine_feature_rule', 'mega_oak_feature_rule',
-        'swamp_tree_feature_rule', 'savanna_tree_feature_rule', 'jungle_tree_feature_rule',
-        'snowy_taiga_pine_feature_rule', 'birch_feature_rule', 'roofed_forest_tree_feature_rule'
-    ]
+    # CRITICAL FIX: Mapping the rule to the EXACT valid feature identifier
+    vanilla_rules = {
+        'forest_oak_feature_rule': 'minecraft:oak_tree_feature',
+        'forest_birch_feature_rule': 'minecraft:birch_tree_feature',
+        'overworld_surface_oak_feature_rule': 'minecraft:oak_tree_feature',
+        'plains_tree_feature_rule': 'minecraft:oak_tree_feature',
+        'taiga_pine_feature_rule': 'minecraft:taiga_pine_feature',
+        'mega_oak_feature_rule': 'minecraft:mega_oak_feature',
+        'swamp_tree_feature_rule': 'minecraft:swamp_tree_feature',
+        'savanna_tree_feature_rule': 'minecraft:savanna_tree_feature',
+        'jungle_tree_feature_rule': 'minecraft:jungle_tree_feature',
+        'snowy_taiga_pine_feature_rule': 'minecraft:taiga_pine_feature',
+        'birch_feature_rule': 'minecraft:birch_tree_feature',
+        'roofed_forest_tree_feature_rule': 'minecraft:roofed_forest_tree_feature'
+    }
     
-    for rule in vanilla_rules:
+    for rule, feature in vanilla_rules.items():
         null_data = {
           "format_version": "1.13.0",
           "minecraft:feature_rules": {
-            "description": { "identifier": f"minecraft:{rule}", "places_feature": "minecraft:air" },
+            "description": { "identifier": f"minecraft:{rule}", "places_feature": feature },
             "conditions": { "placement_pass": "surface_pass" },
             "distribution": { "iterations": 0, "x": 0, "y": 0, "z": 0 }
           }
