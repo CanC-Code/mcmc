@@ -17,13 +17,15 @@ jobs:
         with:
           python-version: '3.x'
 
-      # This runs before zipping so the generated .geo.json is included
-      - name: Generate Procedural Geometry
-        run: python scripts/generate_tree.py
+      - name: Install NBT Library
+        run: pip install nbtlib
+
+      - name: Generate Procedural Structures
+        run: python scripts/generate_structure.py
 
       - name: Package Add-on Files
         run: |
-          # Compress the Behavior Pack
+          # Compress the Behavior Pack (now containing the .mcstructure)
           cd behavior_pack
           zip -r ../Chimera_BP.mcpack *
           cd ..
@@ -34,10 +36,10 @@ jobs:
           cd ..
           
           # Combine into the final .mcaddon
-          zip -j Chimera_v0.1.mcaddon Chimera_BP.mcpack Chimera_RP.mcpack
+          zip -j Chimera_v0.2.mcaddon Chimera_BP.mcpack Chimera_RP.mcpack
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Chimera-Addon
-          path: Chimera_v0.1.mcaddon
+          path: Chimera_v0.2.mcaddon
