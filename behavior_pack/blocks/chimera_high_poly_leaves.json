@@ -9,14 +9,9 @@
       "minecraft:geometry": "geometry.chimera_leaves",
       "minecraft:collision_box": { "origin": [-8, 0, -8], "size": [16, 16, 16] },
       "minecraft:selection_box": { "origin": [-8, 0, -8], "size": [16, 16, 16] },
-      "minecraft:destructible_by_mining": {
-        "seconds_to_destroy": 0.2
-      },
+      "minecraft:destructible_by_mining": { "seconds_to_destroy": 0.2 },
       "minecraft:material_instances": {
-        "*": {
-          "texture": "chimera_oak_leaves",
-          "render_method": "alpha_test"
-        }
+        "*": { "texture": "chimera_oak_leaves", "render_method": "alpha_test" }
       },
       "minecraft:light_dampening": 0
     }
