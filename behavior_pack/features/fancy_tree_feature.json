@@ -4,16 +4,13 @@
     "description": {
       "identifier": "minecraft:fancy_tree_feature"
     },
-    "base_block": "minecraft:air",
+    "base_block": "minecraft:structure_void",
     "trunk": {
-      "trunk_block": "minecraft:air",
-      "trunk_height": {
-        "range_min": 1,
-        "range_max": 1
-      }
+      "trunk_block": "minecraft:structure_void",
+      "trunk_height": { "range_min": 1, "range_max": 1 }
     },
     "leaf_parameters": {
-      "leaf_block": "minecraft:air",
+      "leaf_block": "minecraft:structure_void",
       "fill_radius": 0
     }
   }
