@@ -6,13 +6,13 @@
       "places_feature": "chimera:oak_feature"
     },
     "conditions": {
-      "placement_pass": "vegetation_pass",
+      "placement_pass": "surface_pass",
       "minecraft:biome_filter": [
         { "test": "has_biome_tag", "operator": "==", "value": "overworld" }
       ]
     },
     "distribution": {
-      "iterations": 8,
+      "iterations": 5,
       "x": { "distribution": "uniform", "extent": [ 0, 16 ] },
       "y": "query.heightmap(variable.worldx, variable.worldz)",
       "z": { "distribution": "uniform", "extent": [ 0, 16 ] }
