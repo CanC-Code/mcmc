@@ -13,11 +13,13 @@ def main():
     create_texture('resource_pack/textures/blocks/chimera_oak_bark.png', (83, 53, 10, 255)) # Brown
     create_texture('resource_pack/textures/blocks/chimera_oak_leaves.png', (34, 139, 34, 200)) # Green
     
-    # FIX: Forcefully delete the leftover PBR JSON files that are hijacking the texture engine
+    # Forcefully delete ALL ghost files causing engine collisions
     bad_files = [
         'resource_pack/textures/blocks/chimera_oak_bark.texture_set.json',
         'resource_pack/textures/blocks/chimera_oak_leaves.texture_set.json',
-        'behavior_pack/features/chimera_dummy_void.json'
+        'behavior_pack/features/chimera_dummy_void.json',
+        'behavior_pack/blocks/chimera_oak_tree.json',
+        'resource_pack/models/blocks/chimera_oak.geo.json'
     ]
     
     for file_path in bad_files:
