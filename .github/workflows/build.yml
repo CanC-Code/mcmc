@@ -12,13 +12,16 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Install Headless Blender
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y blender
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
-      - name: Render Procedural Textures
-        run: blender -b -P scripts/generate_blender_textures.py
+      - name: Install Image Library
+        run: pip install Pillow
+
+      - name: Generate Safe Assets & Features
+        run: python scripts/generate_textures.py
 
       - name: Package Add-on Files
         run: |
@@ -30,10 +33,10 @@ jobs:
           zip -r ../Chimera_RP.mcpack *
           cd ..
           
-          zip -j Chimera_v1.2.mcaddon Chimera_BP.mcpack Chimera_RP.mcpack
+          zip -j Chimera_v1.4.mcaddon Chimera_BP.mcpack Chimera_RP.mcpack
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Chimera-Addon
-          path: Chimera_v1.2.mcaddon
+          path: Chimera_v1.4.mcaddon
