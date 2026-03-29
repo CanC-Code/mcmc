@@ -3,10 +3,13 @@
   "minecraft:feature_rules": {
     "description": {
       "identifier": "chimera:oak_rule",
-      "places_feature": "chimera:oak_structure"
+      "places_feature": "chimera:oak_feature"
     },
     "conditions": {
-      "placement_pass": "surface_pass"
+      "placement_pass": "surface_pass",
+      "minecraft:biome_filter": [
+        { "test": "has_biome_tag", "operator": "==", "value": "overworld" }
+      ]
     },
     "distribution": {
       "iterations": 8,
