@@ -4,6 +4,9 @@ import random
 import numpy as np
 from PIL import Image, ImageDraw
 
+random.seed(7)
+np.random.seed(7)
+
 # ═════════════════════════════════════════════════════════════════════════════
 # CONFIGURATION & PATHS
 # ═════════════════════════════════════════════════════════════════════════════
@@ -23,10 +26,10 @@ def write_json(path, data):
         json.dump(data, f, indent=4)
 
 # ═════════════════════════════════════════════════════════════════════════════
-# 1. VANILLA TREE SUPPRESSION
+# 1. VANILLA TREE SUPPRESSION (Setting iterations to 0)
 # ═════════════════════════════════════════════════════════════════════════════
-# Dictionary mapping the rule name to the feature it places
-VANILLA_TREES_TO_REMOVE = {
+print("Writing Vanilla Suppression Rules...")
+VANILLA_RULES = {
     "forest_oak_feature_rule": "minecraft:oak_tree_feature",
     "forest_birch_feature_rule": "minecraft:birch_feature",
     "mega_pine_feature_rule": "minecraft:mega_pine_feature",
@@ -42,32 +45,32 @@ VANILLA_TREES_TO_REMOVE = {
     "overworld_surface_spruce_feature_rule": "minecraft:spruce_feature",
     "overworld_surface_jungle_feature_rule": "minecraft:jungle_tree_feature",
     "overworld_surface_acacia_feature_rule": "minecraft:acacia_feature",
-    "overworld_surface_dark_oak_feature_rule": "minecraft:dark_oak_feature"
+    "overworld_surface_dark_oak_feature_rule": "minecraft:dark_oak_feature",
+    "tall_birch_feature_rule": "minecraft:tall_birch_feature"
 }
 
-print("Writing Vanilla Suppression Rules...")
-for rule_name, feature_name in VANILLA_TREES_TO_REMOVE.items():
+for rule_id, feature_id in VANILLA_RULES.items():
     rule_data = {
         "format_version": "1.13.0",
         "minecraft:feature_rules": {
             "description": {
-                "identifier": f"minecraft:{rule_name}",
-                "places_feature": feature_name
+                "identifier": f"minecraft:{rule_id}",
+                "places_feature": feature_id
             },
             "conditions": {
                 "placement_pass": "surface_pass",
                 "minecraft:biome_filter": [{"test": "has_biome_tag", "operator": "==", "value": "overworld"}]
             },
             "distribution": {
-                "iterations": 0, # This is the key: 0 iterations means it never spawns
+                "iterations": 0,
                 "x": 0, "y": 0, "z": 0
             }
         }
     }
-    write_json(f"{P_BP_RULES}/{rule_name}.json", rule_data)
+    write_json(f"{P_BP_RULES}/{rule_id}.json", rule_data)
 
 # ═════════════════════════════════════════════════════════════════════════════
-# 2. FIXED GEOMETRY (Single Bone)
+# 2. FIXED GEOMETRY (Single Bone to fix floating/tilting)
 # ═════════════════════════════════════════════════════════════════════════════
 print("Writing Corrected Geometry...")
 bark_geo = {
@@ -81,7 +84,6 @@ bark_geo = {
         "bones": [{
             "name": "trunk",
             "pivot": [0, 0, 0],
-            # All cubes are safely inside the single "trunk" bone. No child bones used.
             "cubes": [
                 {"origin": [-2, 0, -7], "size": [4, 16, 14], "uv": {"north": {"uv": [0,0], "uv_size": [4,16]}, "south": {"uv": [0,0], "uv_size": [4,16]}, "east": {"uv": [0,0], "uv_size": [14,16]}, "west": {"uv": [0,0], "uv_size": [14,16]}, "up": {"uv": [0,0], "uv_size": [4,14]}, "down": {"uv": [0,0], "uv_size": [4,14]}}},
                 {"origin": [-7, 0, -2], "size": [14, 16, 4], "uv": {"north": {"uv": [0,0], "uv_size": [14,16]}, "south": {"uv": [0,0], "uv_size": [14,16]}, "east": {"uv": [0,0], "uv_size": [4,16]}, "west": {"uv": [0,0], "uv_size": [4,16]}, "up": {"uv": [0,0], "uv_size": [14,4]}, "down": {"uv": [0,0], "uv_size": [14,4]}}},
@@ -95,12 +97,31 @@ bark_geo = {
 }
 write_json(f"{P_MODELS}/round_bark.geo.json", bark_geo)
 
+leaves_geo = {
+    "format_version": "1.12.0",
+    "minecraft:geometry": [{
+        "description": {
+            "identifier": "geometry.chimera_leaves",
+            "texture_width": 64, "texture_height": 64,
+            "visible_bounds_width": 2, "visible_bounds_height": 2, "visible_bounds_offset": [0, 0.5, 0]
+        },
+        "bones": [{
+            "name": "canopy",
+            "pivot": [0, 0, 0],
+            "cubes": [{
+                "origin": [-8, 0, -8], "size": [16, 16, 16],
+                "uv": {"north": {"uv": [0,0], "uv_size": [16,16]}, "south": {"uv": [0,0], "uv_size": [16,16]}, "east": {"uv": [0,0], "uv_size": [16,16]}, "west": {"uv": [0,0], "uv_size": [16,16]}, "up": {"uv": [0,0], "uv_size": [16,16]}, "down": {"uv": [0,0], "uv_size": [16,16]}}
+            }]
+        }]
+    }]
+}
+write_json(f"{P_MODELS}/leaves.geo.json", leaves_geo)
+
 # ═════════════════════════════════════════════════════════════════════════════
 # 3. CHIMERA BLOCKS & GENERATION FEATURES
 # ═════════════════════════════════════════════════════════════════════════════
 print("Writing Chimera Blocks and Features...")
 
-# The High Poly Bark Block
 bark_block = {
     "format_version": "1.20.80",
     "minecraft:block": {
@@ -120,7 +141,6 @@ bark_block = {
 }
 write_json(f"{P_BP_BLOCKS}/chimera_high_poly_bark.json", bark_block)
 
-# The High Poly Leaves Block
 leaves_block = {
     "format_version": "1.20.80",
     "minecraft:block": {
@@ -139,7 +159,6 @@ leaves_block = {
 }
 write_json(f"{P_BP_BLOCKS}/chimera_high_poly_leaves.json", leaves_block)
 
-# The Tree Feature (Structure)
 feature = {
     "format_version": "1.13.0",
     "minecraft:tree_feature": {
@@ -157,7 +176,6 @@ feature = {
 }
 write_json(f"{P_BP_FEAT}/chimera_oak_feature.json", feature)
 
-# The Tree Rule (Placement)
 rule = {
     "format_version": "1.13.0",
     "minecraft:feature_rules": {
@@ -167,7 +185,7 @@ rule = {
             "minecraft:biome_filter": [{"test": "has_biome_tag", "operator": "==", "value": "overworld"}]
         },
         "distribution": {
-            "iterations": 20, # How many attempts to spawn per chunk
+            "iterations": 20, 
             "x": {"distribution": "uniform", "extent": [0, 16]},
             "y": "query.heightmap(variable.worldx, variable.worldz)",
             "z": {"distribution": "uniform", "extent": [0, 16]}
@@ -176,4 +194,52 @@ rule = {
 }
 write_json(f"{P_BP_RULES}/chimera_oak_feature_rule.json", rule)
 
-print("Files generated successfully!")
+# Lang File and Blocks Definition
+rp_blocks = {
+    "format_version": "1.1.0",
+    "chimera:high_poly_bark": {"textures": "chimera_oak_bark", "sound": "wood"},
+    "chimera:high_poly_leaves": {"textures": "chimera_oak_leaves", "sound": "grass"}
+}
+write_json("resource_pack/blocks.json", rp_blocks)
+
+with open(f"{P_RP_TEXTS}/en_US.lang", "w") as f:
+    f.write("tile.chimera:high_poly_bark.name=Round Oak Log\n")
+    f.write("tile.chimera:high_poly_leaves.name=Round Oak Leaves\n")
+
+# ═════════════════════════════════════════════════════════════════════════════
+# 4. TEXTURE GENERATION (Restored from your original codebase)
+# ═════════════════════════════════════════════════════════════════════════════
+print("Generating Textures with PIL...")
+
+def sobel_normal(img_rgba, strength=3.5):
+    g = np.array(img_rgba.convert("L"), dtype=np.float32) / 255.0
+    dx = np.zeros_like(g); dy = np.zeros_like(g)
+    dx[:, 1:-1] = (g[:, 2:] - g[:, :-2]) * strength
+    dy[1:-1, :] = (g[2:, :] - g[:-2, :]) * strength
+    nx = dx.clip(-1,1); ny = dy.clip(-1,1); nz = np.ones_like(nx)
+    ln = np.sqrt(nx**2 + ny**2 + nz**2) + 1e-8
+    nx, ny, nz = nx/ln, ny/ln, nz/ln
+    return Image.fromarray(np.stack([
+        ((nx+1)*.5*255).astype(np.uint8), ((ny+1)*.5*255).astype(np.uint8), ((nz+1)*.5*255).astype(np.uint8),
+    ], axis=2), "RGB")
+
+def flat_mer(size=128, roughness=205):
+    return Image.new("RGB", (size,size), (0, 0, roughness))
+
+S = 128
+bark = Image.new("RGBA", (S,S), (60, 38, 15, 255))
+db = ImageDraw.Draw(bark)
+for _ in range(220):
+    x = random.randint(0, S-1)
+    db.line([(x,0),(x+random.randint(-5,5), S-1)], fill=(random.randint(28,75),random.randint(17,45),random.randint(4,17),255), width=random.randint(1,3))
+
+bark.save(f"{P_TEXTURES}/chimera_oak_albedo.png")
+sobel_normal(bark, strength=4.5).save(f"{P_TEXTURES}/chimera_oak_normal.png")
+flat_mer(S, 208).save(f"{P_TEXTURES}/chimera_oak_mer.png")
+
+top = Image.new("RGBA", (S,S), (48, 28, 9, 255))
+top.save(f"{P_TEXTURES}/chimera_oak_top.png")
+sobel_normal(top, strength=2.8).save(f"{P_TEXTURES}/chimera_oak_top_normal.png")
+flat_mer(S, 195).save(f"{P_TEXTURES}/chimera_oak_top_mer.png")
+
+print("Files and textures generated successfully!")
