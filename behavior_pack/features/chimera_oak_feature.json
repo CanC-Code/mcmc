@@ -4,7 +4,11 @@
     "description": {
       "identifier": "chimera:oak_feature"
     },
-    "base_block": "minecraft:dirt",
+    "base_block": [
+      "minecraft:grass",
+      "minecraft:dirt",
+      "minecraft:podzol"
+    ],
     "trunk": {
       "trunk_block": "chimera:high_poly_bark",
       "trunk_height": {
