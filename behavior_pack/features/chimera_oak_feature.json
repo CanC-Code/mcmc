@@ -1,0 +1,23 @@
+{
+  "format_version": "1.13.0",
+  "minecraft:tree_feature": {
+    "description": {
+      "identifier": "chimera:oak_feature"
+    },
+    "base_block": "minecraft:dirt",
+    "trunk": {
+      "trunk_block": "chimera:high_poly_bark",
+      "trunk_height": {
+        "range_min": 5,
+        "range_max": 8
+      }
+    },
+    "leaf_parameters": {
+      "leaf_block": "chimera:high_poly_leaves",
+      "fill_radius": {
+        "range_min": 2,
+        "range_max": 4
+      }
+    }
+  }
+}
