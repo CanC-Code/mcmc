@@ -12,34 +12,20 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Install NBT Library
-        run: pip install nbtlib
-
-      - name: Generate Procedural Structures
-        run: python scripts/generate_structure.py
-
       - name: Package Add-on Files
         run: |
-          # Compress the Behavior Pack (now containing the .mcstructure)
           cd behavior_pack
           zip -r ../Chimera_BP.mcpack *
           cd ..
           
-          # Compress the Resource Pack
           cd resource_pack
           zip -r ../Chimera_RP.mcpack *
           cd ..
           
-          # Combine into the final .mcaddon
-          zip -j Chimera_v0.2.mcaddon Chimera_BP.mcpack Chimera_RP.mcpack
+          zip -j Chimera_v1.0.mcaddon Chimera_BP.mcpack Chimera_RP.mcpack
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Chimera-Addon
-          path: Chimera_v0.2.mcaddon
+          path: Chimera_v1.0.mcaddon
