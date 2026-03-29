@@ -6,6 +6,7 @@
       "menu_category": { "category": "nature" }
     },
     "components": {
+      "minecraft:geometry": "geometry.chimera_leaves",
       "minecraft:collision_box": { "origin": [-8, 0, -8], "size": [16, 16, 16] },
       "minecraft:selection_box": { "origin": [-8, 0, -8], "size": [16, 16, 16] },
       "minecraft:destructible_by_mining": {
