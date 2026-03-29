@@ -71,35 +71,35 @@ def render_texture(filename, material_setup_func):
     bpy.ops.object.delete()
 
 def nuke_vanilla_trees():
+    # 1. Delete all old buggy rule overrides to prevent conflicts
     rules_dir = 'behavior_pack/feature_rules'
-    os.makedirs(rules_dir, exist_ok=True)
+    if os.path.exists(rules_dir):
+        for file in os.listdir(rules_dir):
+            if file != 'chimera_oak_rule.json':
+                os.remove(os.path.join(rules_dir, file))
+                
+    # 2. Re-write the vanilla features to only spawn on End Stone
+    features_dir = 'behavior_pack/features'
+    os.makedirs(features_dir, exist_ok=True)
     
-    # CRITICAL FIX: Mapping the rule to the EXACT valid feature identifier
-    vanilla_rules = {
-        'forest_oak_feature_rule': 'minecraft:oak_tree_feature',
-        'forest_birch_feature_rule': 'minecraft:birch_tree_feature',
-        'overworld_surface_oak_feature_rule': 'minecraft:oak_tree_feature',
-        'plains_tree_feature_rule': 'minecraft:oak_tree_feature',
-        'taiga_pine_feature_rule': 'minecraft:taiga_pine_feature',
-        'mega_oak_feature_rule': 'minecraft:mega_oak_feature',
-        'swamp_tree_feature_rule': 'minecraft:swamp_tree_feature',
-        'savanna_tree_feature_rule': 'minecraft:savanna_tree_feature',
-        'jungle_tree_feature_rule': 'minecraft:jungle_tree_feature',
-        'snowy_taiga_pine_feature_rule': 'minecraft:taiga_pine_feature',
-        'birch_feature_rule': 'minecraft:birch_tree_feature',
-        'roofed_forest_tree_feature_rule': 'minecraft:roofed_forest_tree_feature'
-    }
+    vanilla_features = [
+        'oak_tree_feature', 'birch_tree_feature', 'fancy_tree_feature',
+        'spruce_tree_feature', 'pine_tree_feature', 'mega_oak_feature',
+        'mega_pine_tree_feature', 'mega_spruce_tree_feature',
+        'swamp_tree_feature', 'acacia_tree_feature', 'jungle_tree_feature'
+    ]
     
-    for rule, feature in vanilla_rules.items():
+    for feat in vanilla_features:
         null_data = {
           "format_version": "1.13.0",
-          "minecraft:feature_rules": {
-            "description": { "identifier": f"minecraft:{rule}", "places_feature": feature },
-            "conditions": { "placement_pass": "surface_pass" },
-            "distribution": { "iterations": 0, "x": 0, "y": 0, "z": 0 }
+          "minecraft:tree_feature": {
+            "description": { "identifier": f"minecraft:{feat}" },
+            "base_block": "minecraft:end_stone",
+            "trunk": { "trunk_block": "minecraft:air", "trunk_height": 1 },
+            "leaf_parameters": { "leaf_block": "minecraft:air", "fill_radius": 0 }
           }
         }
-        with open(os.path.join(rules_dir, f"{rule}.json"), 'w') as f:
+        with open(os.path.join(features_dir, f"{feat}.json"), 'w') as f:
             json.dump(null_data, f, indent=4)
 
 if __name__ == "__main__":
