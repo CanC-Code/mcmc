@@ -6,20 +6,20 @@ on:
   workflow_dispatch:
 
 jobs:
-  run-scripts:
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-
-      - name: Generate Procedural Geometry
-        run: python scripts/generate_tree.py
-
   build-addon:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      # This runs before zipping so the generated .geo.json is included
+      - name: Generate Procedural Geometry
+        run: python scripts/generate_tree.py
 
       - name: Package Add-on Files
         run: |
@@ -33,7 +33,7 @@ jobs:
           zip -r ../Chimera_RP.mcpack *
           cd ..
           
-          # Combine into the final MCADDON
+          # Combine into the final .mcaddon
           zip -j Chimera_v0.1.mcaddon Chimera_BP.mcpack Chimera_RP.mcpack
 
       - name: Upload Artifact
