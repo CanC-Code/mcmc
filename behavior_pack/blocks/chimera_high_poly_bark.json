@@ -6,6 +6,8 @@
       "menu_category": { "category": "nature" }
     },
     "components": {
+      "minecraft:collision_box": { "origin": [-8, 0, -8], "size": [16, 16, 16] },
+      "minecraft:selection_box": { "origin": [-8, 0, -8], "size": [16, 16, 16] },
       "minecraft:destructible_by_mining": {
         "seconds_to_destroy": 1.5
       },
