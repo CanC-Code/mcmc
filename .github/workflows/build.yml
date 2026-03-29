@@ -23,6 +23,9 @@ jobs:
       - name: Generate Safe Assets & Features
         run: python scripts/generate_textures.py
 
+      - name: Generate source tree blockers
+        run: python scripts/suppress_vanilla_trees.py
+
       - name: Package Add-on Files
         run: |
           cd behavior_pack
