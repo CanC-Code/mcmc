@@ -4,8 +4,8 @@
     {
       "description": {
         "identifier": "geometry.round_bark",
-        "texture_width": 256,
-        "texture_height": 256,
+        "texture_width": 16,
+        "texture_height": 16,
         "visible_bounds_width": 2,
         "visible_bounds_height": 2,
         "visible_bounds_offset": [0, 1, 0]
@@ -15,9 +15,18 @@
           "name": "trunk",
           "pivot": [0, 0, 0],
           "cubes": [
-            { "origin": [-6, 0, -6], "size": [12, 16, 12], "uv": [0, 0] },
-            { "origin": [-7, 0, -5], "size": [14, 16, 10], "uv": [0, 0] },
-            { "origin": [-5, 0, -7], "size": [10, 16, 14], "uv": [0, 0] }
+            { 
+              "origin": [-6, 0, -6], "size": [12, 16, 12], 
+              "uv": { "north": {"uv":[0,0], "uv_size":[12,16]}, "east": {"uv":[0,0], "uv_size":[12,16]}, "south": {"uv":[0,0], "uv_size":[12,16]}, "west": {"uv":[0,0], "uv_size":[12,16]}, "up": {"uv":[0,0], "uv_size":[12,12]}, "down": {"uv":[0,0], "uv_size":[12,12]} } 
+            },
+            { 
+              "origin": [-7, 0, -5], "size": [14, 16, 10], 
+              "uv": { "north": {"uv":[0,0], "uv_size":[14,16]}, "east": {"uv":[0,0], "uv_size":[10,16]}, "south": {"uv":[0,0], "uv_size":[14,16]}, "west": {"uv":[0,0], "uv_size":[10,16]}, "up": {"uv":[0,0], "uv_size":[14,10]}, "down": {"uv":[0,0], "uv_size":[14,10]} } 
+            },
+            { 
+              "origin": [-5, 0, -7], "size": [10, 16, 14], 
+              "uv": { "north": {"uv":[0,0], "uv_size":[10,16]}, "east": {"uv":[0,0], "uv_size":[14,16]}, "south": {"uv":[0,0], "uv_size":[10,16]}, "west": {"uv":[0,0], "uv_size":[14,16]}, "up": {"uv":[0,0], "uv_size":[10,14]}, "down": {"uv":[0,0], "uv_size":[10,14]} } 
+            }
           ]
         }
       ]
