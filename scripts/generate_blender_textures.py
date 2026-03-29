@@ -18,6 +18,12 @@ def setup_render_env():
     bpy.context.scene.render.resolution_y = 256
     bpy.context.scene.render.film_transparent = True
     bpy.context.scene.render.image_settings.color_mode = 'RGBA'
+    
+    # CRITICAL FIX: Disable Denoising for Headless Linux Runners
+    bpy.context.scene.cycles.use_denoising = False
+    
+    # Optional: Lower samples for faster GitHub Actions builds
+    bpy.context.scene.cycles.samples = 32
 
 def create_bark_material(mat):
     mat.use_nodes = True
