@@ -6,11 +6,13 @@ def create_tree_structure():
     # Grid Dimensions (X, Y, Z)
     size_x, size_y, size_z = 7, 12, 7
     
-    # Palette definition matching our JSON blocks
+    # BEDROCK FIX: The 'version' tag is mandatory for custom blocks in structures
+    block_version = Int(17959425)
+    
     palette_data = List[Compound]([
-        Compound({"name": String("minecraft:air"), "states": Compound({})}),
-        Compound({"name": String("chimera:high_poly_bark"), "states": Compound({})}),
-        Compound({"name": String("chimera:high_poly_leaves"), "states": Compound({})})
+        Compound({"name": String("minecraft:air"), "states": Compound({}), "version": block_version}),
+        Compound({"name": String("chimera:high_poly_bark"), "states": Compound({}), "version": block_version}),
+        Compound({"name": String("chimera:high_poly_leaves"), "states": Compound({}), "version": block_version})
     ])
 
     total_blocks = size_x * size_y * size_z
