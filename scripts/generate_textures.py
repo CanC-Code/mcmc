@@ -25,7 +25,7 @@ def write_json(path, data):
         json.dump(data, f, indent=4)
 
 # ═════════════════════════════════════════════════════════════════════════════
-# 1. GEOMETRY (Fixed Leaf UVs and Un-parented Bark)
+# 1. GEOMETRY
 # ═════════════════════════════════════════════════════════════════════════════
 print("Generating Fixed Geometry...")
 bark_geo = {
@@ -100,7 +100,13 @@ leaves_block = {
             "minecraft:selection_box": {"origin": [-8, 0, -8], "size": [16, 16, 16]},
             "minecraft:destructible_by_mining": {"seconds_to_destroy": 0.2},
             "minecraft:light_dampening": 0,
-            "minecraft:material_instances": {"*": {"texture": "chimera_oak_leaves", "render_method": "alpha_test"}}
+            "minecraft:material_instances": {
+                "*": {
+                    "texture": "chimera_oak_leaves",
+                    "render_method": "alpha_test",
+                    "ambient_occlusion": False # Fixes the solid lighting bug on custom transparent leaves
+                }
+            }
         }
     }
 }
@@ -127,7 +133,8 @@ rule = {
         },
         "distribution": {
             "iterations": 20, 
-            "x": {"distribution": "uniform", "extent": [0, 16]},
+            "coordinate_eval_order": "zxy", # CRITICAL FOR SPAWNING 
+            "x": {"distribution": "uniform", "extent": [0, 16]}, # Ensures trees spread across chunk
             "y": "query.heightmap(variable.worldx, variable.worldz)",
             "z": {"distribution": "uniform", "extent": [0, 16]}
         }
@@ -156,7 +163,7 @@ with open(f"{P_RP_TEXTS}/en_US.lang", "w") as f:
     f.write("tile.chimera:high_poly_leaves.name=Round Oak Leaves\n")
 
 # ═════════════════════════════════════════════════════════════════════════════
-# 4. TEXTURE GENERATION & PERFECT FILENAME MATCHING
+# 4. TEXTURE GENERATION 
 # ═════════════════════════════════════════════════════════════════════════════
 print("Generating Textures...")
 
@@ -197,11 +204,11 @@ write_json(f"{P_TEXTURES}/chimera_oak_bark.texture_set.json", {
     }
 })
 
-# --- TOP (Restored Growth Rings) ---
-top = Image.new("RGBA", (S,S), (70, 45, 20, 255)) # Lighter wood inside
+# --- TOP ---
+top = Image.new("RGBA", (S,S), (70, 45, 20, 255))
 dt = ImageDraw.Draw(top)
 center = (S//2, S//2)
-for r in range(5, S//2, 8): # Draw concentric rings
+for r in range(5, S//2, 8):
     dt.ellipse([center[0]-r, center[1]-r, center[0]+r, center[1]+r], outline=(48, 28, 9, 255), width=2)
 
 top.save(f"{P_TEXTURES}/chimera_oak_top.png")
@@ -218,9 +225,9 @@ write_json(f"{P_TEXTURES}/chimera_oak_top.texture_set.json", {
 })
 
 # --- LEAVES ---
-leaves = Image.new("RGBA", (16,16), (0, 0, 0, 0)) 
+leaves = Image.new("RGBA", (16,16), (0, 0, 0, 0)) # Ensure perfectly clear background 
 dl = ImageDraw.Draw(leaves)
-for _ in range(120): # Adjusted for 16x16 size
+for _ in range(120):
     x, y = random.randint(-2, 16), random.randint(-2, 16)
     r = random.randint(1, 3)
     color = (random.randint(30, 60), random.randint(100, 160), random.randint(20, 50), 255)
@@ -228,4 +235,4 @@ for _ in range(120): # Adjusted for 16x16 size
 
 leaves.save(f"{P_TEXTURES}/chimera_oak_leaves.png")
 
-print("\n[SUCCESS] Assets generated! No blocks.json included. UVs fixed.")
+print("\n[SUCCESS] Assets generated! Leaves transparent. Spawning fixed.")
