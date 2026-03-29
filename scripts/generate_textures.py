@@ -4,169 +4,118 @@ import numpy as np
 import os
 import json
 
-def build_assets():
-    out_dir = 'resource_pack/textures/blocks'
-    os.makedirs(out_dir, exist_ok=True)
+# =============================================================================
+# PROJECT CHIMERA - ASSET GENERATOR
+# Run from the repo root: python scripts/generate_textures.py
+# Writes all generated assets in-place; safe to re-run at any time.
+# =============================================================================
 
+def build_assets():
     random.seed(42)
     np.random.seed(42)
 
-    # -------------------------------------------------------------------------
-    # 1. BARK TEXTURES (PBR: albedo, normal, MER)
-    # -------------------------------------------------------------------------
+    # =========================================================================
+    # 1. BARK TEXTURES  (albedo + normal + MER)
+    # =========================================================================
+    out_dir = 'resource_pack/textures/blocks'
+    os.makedirs(out_dir, exist_ok=True)
 
-    # -- Albedo: rich dark-brown oak bark with vertical grain lines
+    # -- Albedo: rich dark-brown oak bark with vertical grain + knots
     bark_albedo = Image.new('RGBA', (64, 64), (72, 47, 22, 255))
     draw = ImageDraw.Draw(bark_albedo)
-
-    # Vertical grain lines
-    for _ in range(80):
+    for _ in range(90):
         x = random.randint(0, 63)
-        shade_r = random.randint(35, 65)
-        shade_g = random.randint(22, 40)
-        shade_b = random.randint(8, 18)
-        width = random.randint(1, 2)
-        draw.line([(x, 0), (x + random.randint(-2, 2), 63)],
-                  fill=(shade_r, shade_g, shade_b, 255), width=width)
-
-    # Horizontal knot-like breaks
-    for _ in range(15):
-        y = random.randint(0, 63)
-        x0 = random.randint(0, 30)
-        x1 = x0 + random.randint(8, 24)
+        r = random.randint(35, 68)
+        g = random.randint(22, 42)
+        b = random.randint(8, 18)
+        w = random.randint(1, 2)
+        draw.line([(x, 0), (x + random.randint(-3, 3), 63)],
+                  fill=(r, g, b, 255), width=w)
+    for _ in range(18):
+        y  = random.randint(2, 61)
+        x0 = random.randint(0, 28)
+        x1 = x0 + random.randint(6, 22)
         draw.line([(x0, y), (x1, y + random.randint(-1, 1))],
-                  fill=(40, 25, 10, 255), width=1)
-
-    # Slight blur for natural blending
-    bark_albedo = bark_albedo.filter(ImageFilter.GaussianBlur(radius=0.4))
+                  fill=(38, 22, 8, 255), width=1)
+    for _ in range(12):
+        x = random.randint(0, 63)
+        draw.line([(x, 0), (x, 63)], fill=(90, 60, 28, 120), width=1)
+    bark_albedo = bark_albedo.filter(ImageFilter.GaussianBlur(radius=0.5))
     bark_albedo.save(os.path.join(out_dir, 'chimera_oak_albedo.png'))
 
-    # -- Normal map: baked from albedo luminance for surface depth illusion
-    bark_gray = np.array(bark_albedo.convert('L'), dtype=np.float32) / 255.0
-    # Sobel-like gradient
-    dx = np.zeros_like(bark_gray)
-    dy = np.zeros_like(bark_gray)
-    dx[:, 1:-1] = (bark_gray[:, 2:] - bark_gray[:, :-2]) * 0.5
-    dy[1:-1, :] = (bark_gray[2:, :] - bark_gray[:-2, :]) * 0.5
-    # Encode to RGB normal map (R=X, G=Y, B=Z), flat Z for tangent-space
-    nx = (dx * 2.0).clip(-1, 1)
-    ny = (dy * 2.0).clip(-1, 1)
+    # -- Normal map: Sobel gradient from albedo luminance
+    bg = np.array(bark_albedo.convert('L'), dtype=np.float32) / 255.0
+    dx = np.zeros_like(bg)
+    dy = np.zeros_like(bg)
+    dx[:, 1:-1] = (bg[:, 2:] - bg[:, :-2]) * 2.5
+    dy[1:-1, :] = (bg[2:, :] - bg[:-2, :]) * 2.5
+    nx = dx.clip(-1, 1)
+    ny = dy.clip(-1, 1)
     nz = np.ones_like(nx)
-    length = np.sqrt(nx**2 + ny**2 + nz**2) + 1e-8
-    nx, ny, nz = nx / length, ny / length, nz / length
-    normal_r = ((nx + 1.0) * 0.5 * 255).astype(np.uint8)
-    normal_g = ((ny + 1.0) * 0.5 * 255).astype(np.uint8)
-    normal_b = ((nz + 1.0) * 0.5 * 255).astype(np.uint8)
-    normal_img = Image.fromarray(
-        np.stack([normal_r, normal_g, normal_b], axis=2), 'RGB'
-    )
+    ln = np.sqrt(nx**2 + ny**2 + nz**2) + 1e-8
+    nx, ny, nz = nx / ln, ny / ln, nz / ln
+    normal_img = Image.fromarray(np.stack([
+        ((nx + 1) * 0.5 * 255).astype(np.uint8),
+        ((ny + 1) * 0.5 * 255).astype(np.uint8),
+        ((nz + 1) * 0.5 * 255).astype(np.uint8)
+    ], axis=2), 'RGB')
     normal_img.save(os.path.join(out_dir, 'chimera_oak_normal.png'))
 
-    # -- MER map: Metalness=0 (wood), Emissive=0, Roughness=200 (rough bark)
+    # -- MER: Metalness=0, Emissive=0, Roughness~200 with grain variation
     mer_bark = Image.new('RGB', (64, 64), (0, 0, 200))
     draw_mer = ImageDraw.Draw(mer_bark)
-    # Slight roughness variation along grain
-    for _ in range(40):
+    for _ in range(50):
         x = random.randint(0, 63)
-        rough = random.randint(170, 220)
-        draw_mer.line([(x, 0), (x, 63)], fill=(0, 0, rough), width=1)
+        draw_mer.line([(x, 0), (x, 63)],
+                      fill=(0, 0, random.randint(175, 225)), width=1)
     mer_bark.save(os.path.join(out_dir, 'chimera_oak_mer.png'))
 
-    print("  [OK] Bark textures: chimera_oak_albedo.png, chimera_oak_normal.png, chimera_oak_mer.png")
+    print("  [OK] Bark: chimera_oak_albedo.png / _normal.png / _mer.png")
 
-    # -------------------------------------------------------------------------
-    # 2. LEAVES TEXTURES (PBR: albedo, normal, MER)
-    # -------------------------------------------------------------------------
-
-    # -- Albedo: semi-transparent leaf clusters on transparent background
+    # =========================================================================
+    # 2. LEAVES TEXTURES  (albedo + normal + MER)
+    # =========================================================================
     leaves_albedo = Image.new('RGBA', (64, 64), (0, 0, 0, 0))
     draw_l = ImageDraw.Draw(leaves_albedo)
-    for _ in range(400):
-        x = random.randint(-4, 60)
-        y = random.randint(-4, 60)
-        r = random.randint(3, 9)
-        green = random.randint(90, 175)
-        red   = random.randint(15, 35)
-        blue  = random.randint(10, 30)
-        alpha = random.randint(200, 245)
+    for _ in range(500):
+        x     = random.randint(-6, 62)
+        y     = random.randint(-6, 62)
+        r     = random.randint(3, 10)
+        green = random.randint(80, 185)
+        red   = random.randint(12, 38)
+        blue  = random.randint(8, 28)
+        alpha = random.randint(210, 255)
         draw_l.ellipse([x, y, x + r, y + r], fill=(red, green, blue, alpha))
+    for _ in range(20):
+        x = random.randint(0, 63)
+        y = random.randint(0, 63)
+        draw_l.ellipse([x, y, x+2, y+2], fill=(60, 200, 60, 160))
     leaves_albedo.save(os.path.join(out_dir, 'chimera_oak_leaves_albedo.png'))
 
-    # -- Normal map: mostly flat (leaves are thin), slight variation
-    leaves_gray = np.array(leaves_albedo.convert('L'), dtype=np.float32) / 255.0
-    dx_l = np.zeros_like(leaves_gray)
-    dy_l = np.zeros_like(leaves_gray)
-    dx_l[:, 1:-1] = (leaves_gray[:, 2:] - leaves_gray[:, :-2]) * 0.3
-    dy_l[1:-1, :] = (leaves_gray[2:, :] - leaves_gray[:-2, :]) * 0.3
+    lg = np.array(leaves_albedo.convert('L'), dtype=np.float32) / 255.0
+    dx_l = np.zeros_like(lg)
+    dy_l = np.zeros_like(lg)
+    dx_l[:, 1:-1] = (lg[:, 2:] - lg[:, :-2]) * 0.4
+    dy_l[1:-1, :] = (lg[2:, :] - lg[:-2, :]) * 0.4
     nz_l = np.ones_like(dx_l)
-    len_l = np.sqrt(dx_l**2 + dy_l**2 + nz_l**2) + 1e-8
-    dx_l, dy_l, nz_l = dx_l / len_l, dy_l / len_l, nz_l / len_l
-    ln_r = ((dx_l + 1.0) * 0.5 * 255).astype(np.uint8)
-    ln_g = ((dy_l + 1.0) * 0.5 * 255).astype(np.uint8)
-    ln_b = ((nz_l + 1.0) * 0.5 * 255).astype(np.uint8)
-    leaves_normal = Image.fromarray(np.stack([ln_r, ln_g, ln_b], axis=2), 'RGB')
+    ll   = np.sqrt(dx_l**2 + dy_l**2 + nz_l**2) + 1e-8
+    dx_l, dy_l, nz_l = dx_l / ll, dy_l / ll, nz_l / ll
+    leaves_normal = Image.fromarray(np.stack([
+        ((dx_l + 1) * 0.5 * 255).astype(np.uint8),
+        ((dy_l + 1) * 0.5 * 255).astype(np.uint8),
+        ((nz_l + 1) * 0.5 * 255).astype(np.uint8)
+    ], axis=2), 'RGB')
     leaves_normal.save(os.path.join(out_dir, 'chimera_oak_leaves_normal.png'))
+    Image.new('RGB', (64, 64), (0, 0, 155)).save(
+        os.path.join(out_dir, 'chimera_oak_leaves_mer.png'))
 
-    # -- MER map: Metalness=0, Emissive=0, Roughness=160 (slightly smooth leaves)
-    mer_leaves = Image.new('RGB', (64, 64), (0, 0, 160))
-    mer_leaves.save(os.path.join(out_dir, 'chimera_oak_leaves_mer.png'))
+    print("  [OK] Leaves: chimera_oak_leaves_albedo.png / _normal.png / _mer.png")
 
-    print("  [OK] Leaves textures: chimera_oak_leaves_albedo.png, chimera_oak_leaves_normal.png, chimera_oak_leaves_mer.png")
-
-    # -------------------------------------------------------------------------
-    # 3. DELETE blocks.json (causes conflicts with custom geometry blocks)
-    # -------------------------------------------------------------------------
-    blocks_json_path = 'resource_pack/blocks.json'
-    if os.path.exists(blocks_json_path):
-        os.remove(blocks_json_path)
-        print("  [OK] Deleted resource_pack/blocks.json")
-    else:
-        print("  [--] blocks.json not present, skipping delete")
-
-    # -------------------------------------------------------------------------
-    # 4. VANILLA TREE FEATURE NULL OVERRIDES
-    #    trunk_block and leaf_block set to air so nothing visible spawns.
-    #    base_block set to end_stone so placement condition never matches.
-    # -------------------------------------------------------------------------
-    features_dir = 'behavior_pack/features'
-    os.makedirs(features_dir, exist_ok=True)
-
-    vanilla_features = [
-        'oak_tree_feature', 'birch_tree_feature', 'fancy_tree_feature',
-        'spruce_tree_feature', 'pine_tree_feature', 'mega_oak_feature',
-        'mega_pine_tree_feature', 'mega_spruce_tree_feature',
-        'swamp_tree_feature', 'acacia_tree_feature', 'jungle_tree_feature'
-    ]
-
-    for feat in vanilla_features:
-        null_feature = {
-            "format_version": "1.13.0",
-            "minecraft:tree_feature": {
-                "description": {
-                    "identifier": f"minecraft:{feat}"
-                },
-                "base_block": ["minecraft:end_stone"],
-                "trunk": {
-                    "trunk_block": "minecraft:air",
-                    "trunk_height": {"range_min": 1, "range_max": 1}
-                },
-                "leaf_parameters": {
-                    "leaf_block": "minecraft:air",
-                    "fill_radius": {"range_min": 0, "range_max": 0}
-                }
-            }
-        }
-        path = os.path.join(features_dir, f"{feat}.json")
-        with open(path, 'w') as f:
-            json.dump(null_feature, f, indent=4)
-
-    print(f"  [OK] Wrote {len(vanilla_features)} null vanilla feature overrides (air trunk/leaves)")
-
-    # -------------------------------------------------------------------------
-    # 5. VERIFY texture_set JSONs reference correct filenames
-    # -------------------------------------------------------------------------
-    texture_sets = {
-        'resource_pack/textures/blocks/chimera_oak_bark.texture_set.json': {
+    # =========================================================================
+    # 3. texture_set JSONs
+    # =========================================================================
+    for path, data in {
+        os.path.join(out_dir, 'chimera_oak_bark.texture_set.json'): {
             "format_version": "1.16.100",
             "minecraft:texture_set": {
                 "color": "chimera_oak_albedo",
@@ -174,7 +123,7 @@ def build_assets():
                 "normal": "chimera_oak_normal"
             }
         },
-        'resource_pack/textures/blocks/chimera_oak_leaves.texture_set.json': {
+        os.path.join(out_dir, 'chimera_oak_leaves.texture_set.json'): {
             "format_version": "1.16.100",
             "minecraft:texture_set": {
                 "color": "chimera_oak_leaves_albedo",
@@ -182,44 +131,252 @@ def build_assets():
                 "normal": "chimera_oak_leaves_normal"
             }
         }
-    }
-    for path, data in texture_sets.items():
-        os.makedirs(os.path.dirname(path), exist_ok=True)
+    }.items():
         with open(path, 'w') as f:
             json.dump(data, f, indent=2)
-    print("  [OK] texture_set JSONs written/verified")
+    print("  [OK] texture_set JSONs written")
 
-    # -------------------------------------------------------------------------
-    # 6. VERIFY terrain_texture.json maps both keys correctly
-    # -------------------------------------------------------------------------
-    terrain_texture_path = 'resource_pack/textures/terrain_texture.json'
-    terrain_texture = {
-        "resource_pack_name": "chimera",
-        "texture_name": "atlas.terrain",
-        "padding": 8,
-        "num_mip_levels": 4,
-        "texture_data": {
-            "chimera_oak_bark": {
-                "textures": "textures/blocks/chimera_oak_bark"
+    # =========================================================================
+    # 4. terrain_texture.json
+    # =========================================================================
+    terrain_path = 'resource_pack/textures/terrain_texture.json'
+    os.makedirs(os.path.dirname(terrain_path), exist_ok=True)
+    with open(terrain_path, 'w') as f:
+        json.dump({
+            "resource_pack_name": "chimera",
+            "texture_name": "atlas.terrain",
+            "padding": 8,
+            "num_mip_levels": 4,
+            "texture_data": {
+                "chimera_oak_bark":   {"textures": "textures/blocks/chimera_oak_bark"},
+                "chimera_oak_leaves": {"textures": "textures/blocks/chimera_oak_leaves"}
+            }
+        }, f, indent=2)
+    print("  [OK] terrain_texture.json written")
+
+    # =========================================================================
+    # 5. DELETE blocks.json (conflicts with custom geometry in 1.20.80+)
+    # =========================================================================
+    blocks_json = 'resource_pack/blocks.json'
+    if os.path.exists(blocks_json):
+        os.remove(blocks_json)
+        print("  [OK] Deleted resource_pack/blocks.json")
+
+    # =========================================================================
+    # 6. ROUND BARK GEOMETRY  (6-cuboid 8-sided cylinder approximation)
+    #    Cross pattern + two diagonal slabs = smooth silhouette at all angles.
+    #    Top-cap disc fills the gap between slab tips.
+    # =========================================================================
+    geo = {
+        "format_version": "1.12.0",
+        "minecraft:geometry": [
+            {
+                "description": {
+                    "identifier": "geometry.round_bark",
+                    "texture_width": 64,
+                    "texture_height": 64,
+                    "visible_bounds_width": 2,
+                    "visible_bounds_height": 2.5,
+                    "visible_bounds_offset": [0, 0.5, 0]
+                },
+                "bones": [
+                    {
+                        "name": "trunk",
+                        "pivot": [0, 0, 0],
+                        "cubes": [
+                            # Core square pillar
+                            {
+                                "origin": [-4, 0, -4], "size": [8, 16, 8],
+                                "uv": {
+                                    "north": {"uv": [0,0], "uv_size": [8,16]},
+                                    "east":  {"uv": [0,0], "uv_size": [8,16]},
+                                    "south": {"uv": [0,0], "uv_size": [8,16]},
+                                    "west":  {"uv": [0,0], "uv_size": [8,16]},
+                                    "up":    {"uv": [0,0], "uv_size": [8,8]},
+                                    "down":  {"uv": [0,0], "uv_size": [8,8]}
+                                }
+                            },
+                            # Wide slab along X axis
+                            {
+                                "origin": [-7, 0, -2], "size": [14, 16, 4],
+                                "uv": {
+                                    "north": {"uv": [8,0], "uv_size": [14,16]},
+                                    "east":  {"uv": [8,0], "uv_size": [4, 16]},
+                                    "south": {"uv": [8,0], "uv_size": [14,16]},
+                                    "west":  {"uv": [8,0], "uv_size": [4, 16]},
+                                    "up":    {"uv": [8,0], "uv_size": [14,4]},
+                                    "down":  {"uv": [8,0], "uv_size": [14,4]}
+                                }
+                            },
+                            # Wide slab along Z axis
+                            {
+                                "origin": [-2, 0, -7], "size": [4, 16, 14],
+                                "uv": {
+                                    "north": {"uv": [8,0], "uv_size": [4, 16]},
+                                    "east":  {"uv": [8,0], "uv_size": [14,16]},
+                                    "south": {"uv": [8,0], "uv_size": [4, 16]},
+                                    "west":  {"uv": [8,0], "uv_size": [14,16]},
+                                    "up":    {"uv": [8,0], "uv_size": [4, 14]},
+                                    "down":  {"uv": [8,0], "uv_size": [4, 14]}
+                                }
+                            },
+                            # Diagonal NW-SE
+                            {
+                                "origin": [-6, 0, -5], "size": [12, 16, 10],
+                                "uv": {
+                                    "north": {"uv": [0,0], "uv_size": [12,16]},
+                                    "east":  {"uv": [0,0], "uv_size": [10,16]},
+                                    "south": {"uv": [0,0], "uv_size": [12,16]},
+                                    "west":  {"uv": [0,0], "uv_size": [10,16]},
+                                    "up":    {"uv": [0,0], "uv_size": [12,10]},
+                                    "down":  {"uv": [0,0], "uv_size": [12,10]}
+                                }
+                            },
+                            # Diagonal NE-SW
+                            {
+                                "origin": [-5, 0, -6], "size": [10, 16, 12],
+                                "uv": {
+                                    "north": {"uv": [0,0], "uv_size": [10,16]},
+                                    "east":  {"uv": [0,0], "uv_size": [12,16]},
+                                    "south": {"uv": [0,0], "uv_size": [10,16]},
+                                    "west":  {"uv": [0,0], "uv_size": [12,16]},
+                                    "up":    {"uv": [0,0], "uv_size": [10,12]},
+                                    "down":  {"uv": [0,0], "uv_size": [10,12]}
+                                }
+                            },
+                            # Top-cap disc (fills gap between slab tips)
+                            {
+                                "origin": [-7, 15, -7], "size": [14, 1, 14],
+                                "uv": {
+                                    "north": {"uv": [0,0], "uv_size": [14,1]},
+                                    "east":  {"uv": [0,0], "uv_size": [14,1]},
+                                    "south": {"uv": [0,0], "uv_size": [14,1]},
+                                    "west":  {"uv": [0,0], "uv_size": [14,1]},
+                                    "up":    {"uv": [0,0], "uv_size": [14,14]},
+                                    "down":  {"uv": [0,0], "uv_size": [14,14]}
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+    geo_path = 'resource_pack/models/blocks/round_bark.geo.json'
+    os.makedirs(os.path.dirname(geo_path), exist_ok=True)
+    with open(geo_path, 'w') as f:
+        json.dump(geo, f, indent=4)
+    print("  [OK] round_bark.geo.json written (6-cuboid cylinder)")
+
+    # =========================================================================
+    # 7. CHIMERA OAK FEATURE
+    #    FIXES:
+    #    - 'minecraft:grass_block' -> 'minecraft:grass'  (Bedrock identifier)
+    #    - Removed 'branches' key  (Java-only, silently breaks feature loading)
+    # =========================================================================
+    oak_feature = {
+        "format_version": "1.13.0",
+        "minecraft:tree_feature": {
+            "description": {"identifier": "chimera:oak_feature"},
+            "base_block": [
+                "minecraft:grass",
+                "minecraft:dirt",
+                "minecraft:podzol"
+            ],
+            "trunk": {
+                "trunk_block": "chimera:high_poly_bark",
+                "trunk_height": {"range_min": 6, "range_max": 10}
             },
-            "chimera_oak_leaves": {
-                "textures": "textures/blocks/chimera_oak_leaves"
+            "leaf_parameters": {
+                "leaf_block": "chimera:high_poly_leaves",
+                "fill_radius": {"range_min": 4, "range_max": 6}
             }
         }
     }
-    os.makedirs(os.path.dirname(terrain_texture_path), exist_ok=True)
-    with open(terrain_texture_path, 'w') as f:
-        json.dump(terrain_texture, f, indent=2)
-    print("  [OK] terrain_texture.json written/verified")
+    feat_path = 'behavior_pack/features/chimera_oak_feature.json'
+    os.makedirs(os.path.dirname(feat_path), exist_ok=True)
+    with open(feat_path, 'w') as f:
+        json.dump(oak_feature, f, indent=4)
+    print("  [OK] chimera_oak_feature.json written (fixed base_block + removed branches)")
+
+    # =========================================================================
+    # 8. VANILLA TREE FEATURE NULL OVERRIDES
+    # =========================================================================
+    features_dir = 'behavior_pack/features'
+    os.makedirs(features_dir, exist_ok=True)
+
+    vanilla_features = [
+        'oak_tree_feature', 'birch_tree_feature', 'fancy_tree_feature',
+        'spruce_tree_feature', 'pine_tree_feature', 'mega_oak_feature',
+        'mega_pine_tree_feature', 'mega_spruce_tree_feature',
+        'swamp_tree_feature', 'acacia_tree_feature', 'jungle_tree_feature',
+        'jungle_transformation_tree_feature', 'mega_jungle_tree_feature',
+    ]
+    for feat in vanilla_features:
+        with open(os.path.join(features_dir, f"{feat}.json"), 'w') as f:
+            json.dump({
+                "format_version": "1.13.0",
+                "minecraft:tree_feature": {
+                    "description": {"identifier": f"minecraft:{feat}"},
+                    "base_block": ["minecraft:end_stone"],
+                    "trunk": {
+                        "trunk_block": "minecraft:air",
+                        "trunk_height": {"range_min": 1, "range_max": 1}
+                    },
+                    "leaf_parameters": {
+                        "leaf_block": "minecraft:air",
+                        "fill_radius": {"range_min": 0, "range_max": 0}
+                    }
+                }
+            }, f, indent=4)
+    print(f"  [OK] {len(vanilla_features)} null vanilla tree feature overrides written")
+
+    # =========================================================================
+    # 9. VANILLA FEATURE RULE SUPPRESSORS (iterations=0 for every known rule)
+    # =========================================================================
+    rules_dir = 'behavior_pack/feature_rules'
+    os.makedirs(rules_dir, exist_ok=True)
+
+    vanilla_rules = [
+        ('minecraft:forest_oak_feature_rule',            'minecraft:oak_tree_feature'),
+        ('minecraft:forest_birch_feature_rule',          'minecraft:birch_tree_feature'),
+        ('minecraft:overworld_surface_oak_feature_rule', 'minecraft:oak_tree_feature'),
+        ('minecraft:overworld_surface_birch_feature_rule','minecraft:birch_tree_feature'),
+        ('minecraft:plains_oak_feature_rule',            'minecraft:oak_tree_feature'),
+        ('minecraft:taiga_spruce_feature_rule',          'minecraft:spruce_tree_feature'),
+        ('minecraft:taiga_pine_feature_rule',            'minecraft:pine_tree_feature'),
+        ('minecraft:mega_taiga_spruce_feature_rule',     'minecraft:mega_spruce_tree_feature'),
+        ('minecraft:mega_taiga_pine_feature_rule',       'minecraft:mega_pine_tree_feature'),
+        ('minecraft:swamp_tree_feature_rule',            'minecraft:swamp_tree_feature'),
+        ('minecraft:jungle_tree_feature_rule',           'minecraft:jungle_tree_feature'),
+        ('minecraft:mega_jungle_tree_feature_rule',      'minecraft:mega_jungle_tree_feature'),
+        ('minecraft:savanna_acacia_feature_rule',        'minecraft:acacia_tree_feature'),
+    ]
+    for rule_id, places in vanilla_rules:
+        filename = rule_id.replace('minecraft:', '') + '.json'
+        with open(os.path.join(rules_dir, filename), 'w') as f:
+            json.dump({
+                "format_version": "1.13.0",
+                "minecraft:feature_rules": {
+                    "description": {
+                        "identifier": rule_id,
+                        "places_feature": places
+                    },
+                    "conditions": {
+                        "placement_pass": "surface_pass",
+                        "minecraft:biome_filter": [
+                            {"test": "has_biome_tag", "operator": "==", "value": "overworld"}
+                        ]
+                    },
+                    "distribution": {"iterations": 0, "x": 0, "y": 0, "z": 0}
+                }
+            }, f, indent=4)
+    print(f"  [OK] {len(vanilla_rules)} vanilla feature rule suppressors written")
 
 
 if __name__ == "__main__":
-    print("=== Project Chimera Asset Generator ===")
+    print("=== Project Chimera Asset Generator ===\n")
     build_assets()
-    print("\nDone. All assets generated successfully.")
-    print("Files written to resource_pack/textures/blocks/:")
-    print("  chimera_oak_albedo.png, chimera_oak_normal.png, chimera_oak_mer.png")
-    print("  chimera_oak_leaves_albedo.png, chimera_oak_leaves_normal.png, chimera_oak_leaves_mer.png")
-    print("  chimera_oak_bark.texture_set.json, chimera_oak_leaves.texture_set.json")
-    print("  terrain_texture.json")
-    print(f"  11x null vanilla tree feature overrides in behavior_pack/features/")
+    print("\n=== Done ===")
+    print("NOTE: Chimera trees only appear in NEWLY generated chunks.")
+    print("      Travel far from existing terrain or create a new world to test.")
