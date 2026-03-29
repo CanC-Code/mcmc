@@ -4,7 +4,7 @@ import os
 import json
 
 def build_assets():
-    # 1. Generate Mobile-Safe Textures
+    # 1. Generate Mobile-Safe 64x64 Textures
     out_dir = 'resource_pack/textures/blocks'
     os.makedirs(out_dir, exist_ok=True)
 
@@ -25,22 +25,12 @@ def build_assets():
         draw_leaves.ellipse([x, y, x+r, y+r], fill=(20, green, 30, 230))
     leaves.save(os.path.join(out_dir, 'chimera_oak_leaves.png'))
 
-    # 2. CRITICAL FIX: Generate blocks.json mapping
-    blocks_json = {
-        "format_version": "1.1.0",
-        "chimera:high_poly_bark": {
-            "textures": "chimera_oak_bark",
-            "sound": "wood"
-        },
-        "chimera:high_poly_leaves": {
-            "textures": "chimera_oak_leaves",
-            "sound": "grass"
-        }
-    }
-    with open('resource_pack/blocks.json', 'w') as f:
-        json.dump(blocks_json, f, indent=4)
+    # 2. CRITICAL FIX: Eradicate blocks.json to prevent Resource Pack Crash
+    blocks_json_path = 'resource_pack/blocks.json'
+    if os.path.exists(blocks_json_path):
+        os.remove(blocks_json_path)
 
-    # 3. CRITICAL FIX: Vanilla Eraser (Schema strict: base_block MUST be a list)
+    # 3. CRITICAL FIX: Schema-Perfect Vanilla Erasers
     features_dir = 'behavior_pack/features'
     os.makedirs(features_dir, exist_ok=True)
     
@@ -57,8 +47,14 @@ def build_assets():
           "minecraft:tree_feature": {
             "description": { "identifier": f"minecraft:{feat}" },
             "base_block": ["minecraft:end_stone"], 
-            "trunk": { "trunk_block": "minecraft:dirt", "trunk_height": 1 },
-            "leaf_parameters": { "leaf_block": "minecraft:dirt", "fill_radius": 0 }
+            "trunk": { 
+                "trunk_block": "minecraft:dirt", 
+                "trunk_height": {"range_min": 1, "range_max": 1} 
+            },
+            "leaf_parameters": { 
+                "leaf_block": "minecraft:dirt", 
+                "fill_radius": {"range_min": 0, "range_max": 0} 
+            }
           }
         }
         with open(os.path.join(features_dir, f"{feat}.json"), 'w') as f:
@@ -66,4 +62,4 @@ def build_assets():
 
 if __name__ == "__main__":
     build_assets()
-    print("Successfully generated valid assets, blocks.json, and safe vanilla overrides.")
+    print("Generated textures, deleted blocks.json, and wrote strict schema overrides.")
