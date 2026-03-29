@@ -12,20 +12,34 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Install Dependencies
+        run: pip install Pillow
+
+      - name: Generate Placeholder Textures
+        run: python scripts/generate_placeholder_textures.py
+
       - name: Package Add-on Files
         run: |
+          # Compress the Behavior Pack
           cd behavior_pack
           zip -r ../Chimera_BP.mcpack *
           cd ..
           
+          # Compress the Resource Pack (now containing generated PNGs)
           cd resource_pack
           zip -r ../Chimera_RP.mcpack *
           cd ..
           
-          zip -j Chimera_v1.0.mcaddon Chimera_BP.mcpack Chimera_RP.mcpack
+          # Combine into the final .mcaddon
+          zip -j Chimera_v1.1.mcaddon Chimera_BP.mcpack Chimera_RP.mcpack
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: Chimera-Addon
-          path: Chimera_v1.0.mcaddon
+          path: Chimera_v1.1.mcaddon
