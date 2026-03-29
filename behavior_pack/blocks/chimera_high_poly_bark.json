@@ -7,16 +7,13 @@
     },
     "components": {
       "minecraft:geometry": "geometry.round_bark",
-      "minecraft:collision_box": { "origin": [-7, 0, -7], "size": [14, 16, 14] },
-      "minecraft:selection_box": { "origin": [-7, 0, -7], "size": [14, 16, 14] },
-      "minecraft:destructible_by_mining": {
-        "seconds_to_destroy": 1.5
-      },
+      "minecraft:collision_box": { "origin": [-8, 0, -8], "size": [16, 16, 16] },
+      "minecraft:selection_box": { "origin": [-8, 0, -8], "size": [16, 16, 16] },
+      "minecraft:destructible_by_mining": { "seconds_to_destroy": 1.5 },
       "minecraft:material_instances": {
-        "*": {
-          "texture": "chimera_oak_bark",
-          "render_method": "opaque"
-        }
+        "*":    { "texture": "chimera_oak_bark", "render_method": "opaque" },
+        "top":  { "texture": "chimera_oak_top",  "render_method": "opaque" },
+        "down": { "texture": "chimera_oak_top",  "render_method": "opaque" }
       }
     }
   }
