@@ -27,7 +27,7 @@ def write_json(path, data):
 # ═════════════════════════════════════════════════════════════════════════════
 # 1. GEOMETRY
 # ═════════════════════════════════════════════════════════════════════════════
-print("Generating Fixed Geometry...")
+print("Generating Geometry...")
 bark_geo = {
     "format_version": "1.12.0",
     "minecraft:geometry": [{
@@ -68,7 +68,7 @@ leaves_geo = {
 write_json(f"{P_MODELS}/leaves.geo.json", leaves_geo)
 
 # ═════════════════════════════════════════════════════════════════════════════
-# 2. CHIMERA BLOCKS & FEATURES
+# 2. CHIMERA BLOCKS & FEATURES (1.20.80 FIXES APPLIED)
 # ═════════════════════════════════════════════════════════════════════════════
 print("Generating Block Logic...")
 bark_block = {
@@ -100,11 +100,11 @@ leaves_block = {
             "minecraft:selection_box": {"origin": [-8, 0, -8], "size": [16, 16, 16]},
             "minecraft:destructible_by_mining": {"seconds_to_destroy": 0.2},
             "minecraft:light_dampening": 0,
+            "minecraft:ambient_occlusion": False, # FIXED: Must be an independent component here
             "minecraft:material_instances": {
                 "*": {
                     "texture": "chimera_oak_leaves",
-                    "render_method": "alpha_test",
-                    "ambient_occlusion": False # Fixes the solid lighting bug on custom transparent leaves
+                    "render_method": "alpha_test" # FIXED: Render method alone inside instances
                 }
             }
         }
@@ -133,17 +133,17 @@ rule = {
         },
         "distribution": {
             "iterations": 20, 
-            "coordinate_eval_order": "zxy", # CRITICAL FOR SPAWNING 
-            "x": {"distribution": "uniform", "extent": [0, 16]}, # Ensures trees spread across chunk
-            "y": "query.heightmap(variable.worldx, variable.worldz)",
-            "z": {"distribution": "uniform", "extent": [0, 16]}
+            "coordinate_eval_order": "xzy", # FIXED: Required so Y knows what X and Z are
+            "x": {"distribution": "uniform", "extent": [0, 16]}, 
+            "z": {"distribution": "uniform", "extent": [0, 16]},
+            "y": "query.heightmap(variable.worldx, variable.worldz)"
         }
     }
 }
 write_json(f"{P_BP_RULES}/chimera_oak_rule.json", rule)
 
 # ═════════════════════════════════════════════════════════════════════════════
-# 3. TEXTURE MAPPINGS (No blocks.json created to prevent crashes)
+# 3. TEXTURE MAPPINGS 
 # ═════════════════════════════════════════════════════════════════════════════
 terrain_texture = {
     "resource_pack_name": "chimera_rp",
@@ -184,55 +184,36 @@ def flat_mer(size=128, roughness=205):
 
 S = 128
 
-# --- BARK ---
+# Bark Image
 bark = Image.new("RGBA", (S,S), (60, 38, 15, 255))
 db = ImageDraw.Draw(bark)
 for _ in range(220):
     x = random.randint(0, S-1)
     db.line([(x,0),(x+random.randint(-5,5), S-1)], fill=(random.randint(28,75),random.randint(17,45),random.randint(4,17),255), width=random.randint(1,3))
-
 bark.save(f"{P_TEXTURES}/chimera_oak_bark.png")
 sobel_normal(bark, strength=4.5).save(f"{P_TEXTURES}/chimera_oak_bark_normal.png")
 flat_mer(S, 208).save(f"{P_TEXTURES}/chimera_oak_bark_mer.png")
+write_json(f"{P_TEXTURES}/chimera_oak_bark.texture_set.json", {"format_version": "1.16.100", "minecraft:texture_set": {"color": "chimera_oak_bark", "metalness_emissive_roughness": "chimera_oak_bark_mer", "normal": "chimera_oak_bark_normal"}})
 
-write_json(f"{P_TEXTURES}/chimera_oak_bark.texture_set.json", {
-    "format_version": "1.16.100",
-    "minecraft:texture_set": {
-        "color": "chimera_oak_bark",
-        "metalness_emissive_roughness": "chimera_oak_bark_mer",
-        "normal": "chimera_oak_bark_normal"
-    }
-})
-
-# --- TOP ---
+# Top Image
 top = Image.new("RGBA", (S,S), (70, 45, 20, 255))
 dt = ImageDraw.Draw(top)
 center = (S//2, S//2)
 for r in range(5, S//2, 8):
     dt.ellipse([center[0]-r, center[1]-r, center[0]+r, center[1]+r], outline=(48, 28, 9, 255), width=2)
-
 top.save(f"{P_TEXTURES}/chimera_oak_top.png")
 sobel_normal(top, strength=2.8).save(f"{P_TEXTURES}/chimera_oak_top_normal.png")
 flat_mer(S, 195).save(f"{P_TEXTURES}/chimera_oak_top_mer.png")
+write_json(f"{P_TEXTURES}/chimera_oak_top.texture_set.json", {"format_version": "1.16.100", "minecraft:texture_set": {"color": "chimera_oak_top", "metalness_emissive_roughness": "chimera_oak_top_mer", "normal": "chimera_oak_top_normal"}})
 
-write_json(f"{P_TEXTURES}/chimera_oak_top.texture_set.json", {
-    "format_version": "1.16.100",
-    "minecraft:texture_set": {
-        "color": "chimera_oak_top",
-        "metalness_emissive_roughness": "chimera_oak_top_mer",
-        "normal": "chimera_oak_top_normal"
-    }
-})
-
-# --- LEAVES ---
-leaves = Image.new("RGBA", (16,16), (0, 0, 0, 0)) # Ensure perfectly clear background 
+# Leaves Image
+leaves = Image.new("RGBA", (16,16), (0, 0, 0, 0)) # Fully transparent canvas
 dl = ImageDraw.Draw(leaves)
 for _ in range(120):
     x, y = random.randint(-2, 16), random.randint(-2, 16)
     r = random.randint(1, 3)
     color = (random.randint(30, 60), random.randint(100, 160), random.randint(20, 50), 255)
     dl.ellipse([x, y, x+r, y+r], fill=color)
-
 leaves.save(f"{P_TEXTURES}/chimera_oak_leaves.png")
 
-print("\n[SUCCESS] Assets generated! Leaves transparent. Spawning fixed.")
+print("\n[SUCCESS] Assets generated properly for 1.20.80 schema!")
