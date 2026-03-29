@@ -4,14 +4,18 @@
     "description": {
       "identifier": "minecraft:birch_tree_feature"
     },
-    "base_block": "minecraft:structure_void",
+    "base_block": [
+      "minecraft:grass",
+      "minecraft:dirt",
+      "minecraft:podzol"
+    ],
     "trunk": {
-      "trunk_block": "minecraft:structure_void",
-      "trunk_height": { "range_min": 1, "range_max": 1 }
+      "trunk_block": "minecraft:air",
+      "trunk_height": { "range_min": 4, "range_max": 6 }
     },
     "leaf_parameters": {
-      "leaf_block": "minecraft:structure_void",
-      "fill_radius": 0
+      "leaf_block": "minecraft:air",
+      "fill_radius": { "range_min": 2, "range_max": 3 }
     }
   }
 }
