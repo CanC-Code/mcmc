@@ -18,7 +18,7 @@ jobs:
           python-version: '3.x'
 
       - name: Install Image Library
-        run: pip install Pillow
+        run: pip install Pillow numpy
 
       - name: Generate Safe Assets & Features
         run: python scripts/generate_textures.py
