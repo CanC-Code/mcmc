@@ -1,13 +1,20 @@
 {
   "format_version": "1.13.0",
-  "minecraft:scatter_feature": {
+  "minecraft:tree_feature": {
     "description": {
       "identifier": "minecraft:oak_tree_feature"
     },
-    "places_feature": "minecraft:air",
-    "iterations": 0,
-    "x": 0,
-    "y": -100,
-    "z": 0
+    "base_block": "minecraft:air",
+    "trunk": {
+      "trunk_block": "minecraft:air",
+      "trunk_height": {
+        "range_min": 1,
+        "range_max": 1
+      }
+    },
+    "leaf_parameters": {
+      "leaf_block": "minecraft:air",
+      "fill_radius": 0
+    }
   }
 }
