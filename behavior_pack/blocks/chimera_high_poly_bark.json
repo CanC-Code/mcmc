@@ -6,6 +6,7 @@
       "menu_category": { "category": "nature" }
     },
     "components": {
+      "minecraft:unit_cube": {},
       "minecraft:material_instances": {
         "*": {
           "texture": "chimera_oak_bark",
