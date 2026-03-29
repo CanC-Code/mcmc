@@ -6,8 +6,11 @@ print("Starting Vanilla Tree Suppression...")
 P_BP_RULES = "behavior_pack/feature_rules"
 os.makedirs(P_BP_RULES, exist_ok=True)
 
-# The comprehensive list of vanilla rules to override
+# Master list of all vanilla tree rules and their features
 VANILLA_RULES = {
+    "lush_caves_azalea_tree_feature_rule": "minecraft:azalea_tree_feature",
+    "cherry_tree_feature_rule": "minecraft:cherry_tree_feature",
+    "mangrove_tree_feature_rule": "minecraft:mangrove_tree_feature",
     "forest_oak_feature_rule": "minecraft:oak_tree_feature",
     "forest_birch_feature_rule": "minecraft:birch_feature",
     "mega_pine_feature_rule": "minecraft:mega_pine_feature",
@@ -31,12 +34,26 @@ for rule_id, feature_id in VANILLA_RULES.items():
     rule_data = {
         "format_version": "1.13.0",
         "minecraft:feature_rules": {
-            "description": {"identifier": f"minecraft:{rule_id}", "places_feature": feature_id},
+            "description": {
+                "identifier": f"minecraft:{rule_id}",
+                "places_feature": feature_id
+            },
             "conditions": {
                 "placement_pass": "surface_pass",
-                "minecraft:biome_filter": [{"test": "has_biome_tag", "operator": "==", "value": "overworld"}]
+                "minecraft:biome_filter": [
+                    {
+                        "test": "has_biome_tag",
+                        "operator": "==",
+                        "value": "overworld"
+                    }
+                ]
             },
-            "distribution": {"iterations": 0, "x": 0, "y": 0, "z": 0}
+            "distribution": {
+                "iterations": 0,
+                "x": 0,
+                "y": 0,
+                "z": 0
+            }
         }
     }
     with open(f"{P_BP_RULES}/{rule_id}.json", "w") as f:
